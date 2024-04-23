@@ -2,9 +2,10 @@
 # Copyright (c) 2023 Advanced Micro Devices, Inc. All Rights Reserved.
 # SPDX-License-Identifier: MIT
 #
-#Description      : This script generates EEPROM bin Contents
-#Author           : Sharathk
-#Version          : 1.0
+# Description      : This script generates EEPROM bin Contents
+# Author           : Sharathk
+# Editor           : Gurgenbaby
+# Version          : 1.0
 #
 #******************************************************************************
 import os
@@ -13,6 +14,7 @@ import struct
 import shutil
 import datetime
 import uuid
+import binascii
 
 
 bArray = bytearray()
@@ -45,13 +47,12 @@ def calc_checksum(fp, num, pos):
     total_sum = 0
     fp.seek(pos)
     for i in range(num):
-        #print(i)
-        total_sum = total_sum + int(fp.read(1).encode('hex'), 16)
-    #print(total_sum)
-    lsb_byte = (total_sum & 0xFF)
+        total_sum = total_sum + int.from_bytes(fp.read(1), byteorder='big')
+    lsb_byte = (total_sum & 0xFF) # mask the lower byte
     if lsb_byte == 0:
         return 0xFF
     else:
+        # Using CheckSum8 2s Complement
         return (0x100 - lsb_byte)
     
 def calc_mfg_time():
@@ -63,28 +64,35 @@ def calc_mfg_time():
 
 #Menu selection for SOM/KV/KR/KD EEPROMS
 sys.path.insert(1, './InputData/')
-print("Please provide proper user inputs in data.py file")
-print("Select 1 for k26_som_eeprom")
-print("Select 2 for kv_cc_eeprom")
-print("Select 3 for kr_cc_eeprom")
-print("Select 4 for removing Output dir")
+print("EEPROM binary generator\n")
+print("Enter 1 for k26_som_eeprom")
+print("Enter 2 for kv_cc_eeprom")
+print("Enter 3 for kr_cc_eeprom")
+print("Enter 4 for removing Output dir\n")
+
 if not os.path.exists("Output"):
     os.makedirs("Output")
-sel = input ("Please Select any one of above: ")
+
+sel = int(input("Input: "))
+
 if sel == 1:
     shutil.copyfile("./DataFeed/k26_som_ref.bin", "./Output/k26_som_eeprom.bin")
     filePtr = open("./Output/k26_som_eeprom.bin", "r+b")
     from k26_data import *
+    print("K26 SOM EEPROM selected\n")
 elif sel == 2:
     shutil.copyfile("./DataFeed/kv_cc_ref.bin", "./Output/kv_cc_eeprom.bin")
     filePtr = open("./Output/kv_cc_eeprom.bin", "r+b")
     from kv_cc_data import *
+    print("KV CC SOM EEPROM selected\n")
 elif sel == 3:
     shutil.copyfile("./DataFeed/kr_cc_ref.bin", "./Output/kr_cc_eeprom.bin")
     filePtr = open("./Output/kr_cc_eeprom.bin", "r+b")
     from kr_cc_data import *
+    print("KR CC SOM EEPROM selected\n")
 elif sel == 4:
     shutil.rmtree("Output")
+    print("Output directory removed\n")
     exit()
 else:
     print("Invalid Choice.")
@@ -92,22 +100,25 @@ else:
 
 #Table: 4, SOM & CC Common Header and Board Area
 #Common Header (8 Bytes)
-print('Writing Common Header Area...')
-write_to_bin_file(filePtr, PRD_INFO_0x04.decode("hex"), 0x4, 1)
-write_to_bin_file(filePtr, struct.pack("B", calc_checksum(filePtr, 0x7, 0x0)),0x7, 1)
-#Board Area(96 or 72 Bytes)
-print('Writing Board Area...')
-bArray = struct.pack("<L", calc_mfg_time())
+print('Writing Common Header Area')
+print('    | Size: 08 Bytes (0x00 - 0x07)')
+write_to_bin_file(filePtr, bytes.fromhex(PRD_INFO_0x04), 0x4, 1)
+write_to_bin_file(filePtr, struct.pack("B", calc_checksum(filePtr, 0x7, 0x0)), 0x7, 1)
+
+#Board Info Area(96 or 72 Bytes)
+print('\nWriting Board Info Area')
+print('    | Size: 96 Bytes (0x08 - 0x67)')
+bArray = struct.pack("<L", int(calc_mfg_time()))
 write_to_bin_file(filePtr, bArray[:3], 0xB, 3)
-write_to_bin_file(filePtr, BRD_MANUFACTURER_0x0F, 0xF, 6)
+write_to_bin_file(filePtr, bytes.fromhex(BRD_MANUFACTURER_0x0F), 0xF, 6)
 if sel == 1:
-    write_to_bin_file(filePtr, BRD_PRODUCT_0x16, 0x16, 16)
-write_to_bin_file(filePtr, BRD_SERIAL_0x27, 0x27, 16)
-write_to_bin_file(filePtr, BRD_PART_0x38, 0x38, 9)
-write_to_bin_file(filePtr, REV_NUM_0x44, 0x44, 8)
-write_to_bin_file(filePtr, DEV_ID_0x4F.decode("hex"), 0x4F, 2)
-write_to_bin_file(filePtr, SUB_VEN_ID_0x51.decode("hex"), 0x51, 2)
-write_to_bin_file(filePtr, SUB_DEV_ID_0x53.decode("hex"), 0x53, 2)
+    write_to_bin_file(filePtr, bytes.fromhex(BRD_PRODUCT_0x16), 0x16, 16)
+write_to_bin_file(filePtr, bytes.fromhex(BRD_SERIAL_0x27), 0x27, 16)
+write_to_bin_file(filePtr, bytes.fromhex(BRD_PART_0x38), 0x38, 9)
+write_to_bin_file(filePtr, bytes.fromhex(REV_NUM_0x44), 0x44, 8)
+write_to_bin_file(filePtr, bytes.fromhex(DEV_ID_0x4F), 0x4F, 2)
+write_to_bin_file(filePtr, bytes.fromhex(SUB_VEN_ID_0x51), 0x51, 2)
+write_to_bin_file(filePtr, bytes.fromhex(SUB_DEV_ID_0x53), 0x53, 2)
 calc_uuid4(filePtr,0x56)
 write_to_bin_file(filePtr, struct.pack("B", calc_checksum(filePtr, 0x5F, 0x8)),0x67, 1)
 

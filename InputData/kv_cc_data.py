@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: MIT
 #
 #Description      : KV CC EEPROM Input Data
-#Author           : Sharathk          
+#Author           : Sharathk
 #Version          : 1.0               
 #
 #******************************************************************************
 
-#Product Info Area
+#Product Info Area Starting Offset
 PRD_INFO_0x04 = "00"
+
 #Board Manufacturer
 BRD_MANUFACTURER_0x0F = "XYZ"
 #Board Product name
@@ -27,4 +28,4 @@ SUB_VEN_ID_0x51 = "0000"
 #Sub Device ID
 SUB_DEV_ID_0x53 = "0000"
 
-###################################################################################################
+###############################################################################

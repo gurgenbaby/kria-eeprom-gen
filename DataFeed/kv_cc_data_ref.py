@@ -11,15 +11,15 @@
 #Product Info Area
 PRD_INFO_0x04 = "00"
 #Board Manufacturer
-BRD_MANUFACTURER_0x0F = "      
+BRD_MANUFACTURER_0x0F = ""
 #Board Product name
-BRD_PRODUCT_0x16 = "                
+BRD_PRODUCT_0x16 = ""
 #Board Serial number
-BRD_SERIAL_0x27 = "                
+BRD_SERIAL_0x27 = ""
 #Board Part number
-BRD_PART_0x38 = "         
+BRD_PART_0x38 = ""
 #Revision Number
-REV_NUM_0x44 = "        
+REV_NUM_0x44 = ""
 #Device ID
 DEV_ID_0x4F = "0000"
 #Sub Vendor ID

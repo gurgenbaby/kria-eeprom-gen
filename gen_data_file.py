@@ -2,10 +2,10 @@
 # Copyright (c) 2023 Advanced Micro Devices, Inc. All Rights Reserved.
 # SPDX-License-Identifier: MIT
 #
-#Description      : This script generates user data file by processing 
-#                   EEPROM bins
-#Author           : Sharathk
-#Version          : 1.0
+# Description      : This script generates user data file by processing 
+#                    EEPROM bins
+# Author           : Sharathk
+# Version          : 1.0
 #
 #******************************************************************************
 import sys
